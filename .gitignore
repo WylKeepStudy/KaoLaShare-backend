@@ -1,0 +1,27 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.log
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# macOS
+.DS_Store
+
+# Maven Wrapper
+# 如果你希望所有人都用同一个 Maven 版本，保留 .mvn/ 和 mvnw 
+.mvn/
+mvnw
+mvnw.cmd
