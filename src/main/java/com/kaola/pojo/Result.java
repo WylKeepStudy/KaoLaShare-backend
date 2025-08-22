@@ -14,7 +14,7 @@ public class Result {
 
     public static Result success() {
         Result result = new Result();
-        result.code = 1;
+        result.code = 200;
         result.msg = "success";
         return result;
     }
@@ -22,15 +22,15 @@ public class Result {
     public static Result success(Object object) {
         Result result = new Result();
         result.data = object;
-        result.code = 1;
+        result.code = 200;
         result.msg = "success";
         return result;
     }
 
-    public static Result error(String msg) {
+    public static Result error(int code, String msg) {
         Result result = new Result();
+        result.code = code;
         result.msg = msg;
-        result.code = 0;
         return result;
     }
 
