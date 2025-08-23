@@ -25,7 +25,7 @@ public class JwtUtil {
      * @param username 用户名
      * @return 生成的 JWT 字符串
      */
-    public String generateToken(Long userId, String username) {
+    public static String generateToken(Long userId, String username) {
         // 设置JWT的Claims（声明），即有效载荷
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
@@ -48,7 +48,7 @@ public class JwtUtil {
      * @return Claims 对象，包含令牌中的所有声明（如 userId, username, exp 等）
      * @throws JwtException 如果令牌无效或过期
      */
-    public Claims parseToken(String token) throws JwtException {
+    public static Claims parseToken(String token) throws JwtException {
         return Jwts.parser()
                 .setSigningKey(SECRET_KEY)   // 设置用于验证签名的预设密钥
                 .parseClaimsJws(token)       // 解析JWT令牌
