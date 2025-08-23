@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 对应UserMapper接口的全类名 -->
+<mapper namespace="com.kaola.mapper.UserMapper">
+    <!-- 1. 查询用户名是否存在 -->
+    <select id="findByUsername" resultType="com.kaola.pojo.User">
+        SELECT id FROM t_user WHERE username = #{username}
+    </select>
+
+    <!-- 2. 插入新用户 -->
+    <insert id="insert">
+        INSERT INTO t_user (username, password, avatar_url, create_time)
+        VALUES (#{username}, #{password}, #{avatarUrl}, #{createTime})
+    </insert>
+</mapper>
