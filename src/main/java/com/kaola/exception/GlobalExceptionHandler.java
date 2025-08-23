@@ -48,4 +48,27 @@ public class GlobalExceptionHandler {
 
     }
 
+    /**
+     * 处理文件未找到异常
+     * 返回码 404，表示资源未找到
+     */
+    @ExceptionHandler(FileNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND) // 设置HTTP状态码为404 Not Found
+    public Result handleFileNotFoundException(FileNotFoundException e) {
+        log.error("文件未找到异常: {}", e.getMessage());
+        return Result.error(404, "文件不存在或已被删除");
+    }
+
+
+    /**
+     * 处理自定义的 BusinessException 异常
+     * 返回码 400，表示业务逻辑错误（客户端请求或数据不符合业务规则）
+     */
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 设置HTTP状态码为400 Bad Request
+    public Result handleBusinessException(BusinessException e) {
+        log.error("业务异常: {}", e.getMessage());
+        return Result.error(400, e.getMessage());
+    }
+
 }
