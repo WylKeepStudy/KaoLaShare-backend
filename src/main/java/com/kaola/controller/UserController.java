@@ -17,6 +17,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+
+    /**
+     * 注册
+     * @param registerDTO 注册参数
+     * @return 注册结果
+     */
     @PostMapping("/register")
     public Result register(@RequestBody UserRegisterDTO registerDTO) {
         return userService.register(registerDTO);
