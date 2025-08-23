@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.UUID;
 
 @Component
@@ -17,6 +18,8 @@ public class AliyunOSSOperator {
 
     @Autowired
     private AliyunOSSProperties aliyunOSSProperties;
+
+
 
     /**
      * 文件类型枚举，用于区分上传的文件是图片还是普通文件
@@ -94,4 +97,15 @@ public class AliyunOSSOperator {
         // 如果endpoint是 "oss-cn-beijing.aliyuncs.com" (不带协议)，则应该是
         // return "https://" + bucketName + "." + endpoint + "/" + objectName;
     }
+
+
+    public InputStream download(String fileUrl) {
+
+        return null;
+
+    }
+
+
+
+
 }
