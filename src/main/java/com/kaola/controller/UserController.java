@@ -32,6 +32,13 @@ public class UserController {
         return userService.register(registerDTO);
     }
 
+
+
+    /**
+     * 登录
+     * @param request 登录参数
+     * @return 登录结果
+     */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
         Map<String, Object> response = new HashMap<>();

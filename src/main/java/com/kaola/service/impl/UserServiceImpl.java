@@ -20,6 +20,9 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
     private JwtUtil jwtUtils;
+
+
+
     @Override
     public Result register(UserRegisterDTO registerDTO) {
 
@@ -46,6 +49,9 @@ public class UserServiceImpl implements UserService {
         return Result.success("注册成功");
 
     }
+
+
+
 
     @Override
     public LoginResponse login(LoginRequest request) {
