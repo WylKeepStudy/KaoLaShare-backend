@@ -2,10 +2,9 @@ package com.kaola.service.impl;
 
 import com.kaola.exception.UsernameAlreadyExistsException;
 import com.kaola.mapper.UserMapper;
-import com.kaola.pojo.Result;
-import com.kaola.pojo.User;
-import com.kaola.pojo.UserRegisterDTO;
+import com.kaola.pojo.*;
 import com.kaola.service.UserService;
+import com.kaola.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,8 @@ public class UserServiceImpl implements UserService {
     @Autowired // 自动注入Mapper
     private UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
+    @Autowired
+    private JwtUtil jwtUtils;
     @Override
     public Result register(UserRegisterDTO registerDTO) {
 
@@ -46,4 +46,22 @@ public class UserServiceImpl implements UserService {
         return Result.success("注册成功");
 
     }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        User user = userMapper.findByUsernameForLogin(request.getUsername());
+        if (user == null) {
+            throw new RuntimeException("用户名不存在");
+        }
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("密码错误");
+        }
+
+        // 3. 生成 JWT 令牌（包含 userId 和 username）
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername());
+
+        // 4. 返回登录成功数据
+        return new LoginResponse(token);
+    }
+
 }
