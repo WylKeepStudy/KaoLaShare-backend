@@ -4,6 +4,7 @@ package com.kaola.mapper;
 import com.kaola.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 @Mapper
 public interface UserMapper {
@@ -12,4 +13,9 @@ public interface UserMapper {
 
     // 2. 插入新用户到数据库
     void insert(User user);
+
+    // 3. 根据用户名查询用户（登录使用）
+    @Select("SELECT id, username, password FROM t_user WHERE username = #{username}")
+    User findByUsernameForLogin(@Param("username") String username);
+
 }
