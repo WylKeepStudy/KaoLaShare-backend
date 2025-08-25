@@ -216,7 +216,7 @@ public class FileController {
             if (ossObject != null) { // 使用在try块外部声明的ossObject
                 try {
                     ossObject.close();
-                    log.warn("在异常情况下关闭了OSSObject for file ID {}.", fileId);
+                    log.error("在异常情况下关闭了OSSObject for file ID {}.", fileId);
                 } catch (IOException ioException) {
                     log.error("在异常情况下关闭OSSObject失败: {}", ioException.getMessage());
                 }

@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * @version 1.0
- * @Author wyl
- * @Date 2025/8/23 17:14
+ * 拦截器，用于验证用户Token
+ * 引入了线程上下文，用于存储用户ID，以便后续业务逻辑使用。
  */
+
 
 @Component
 @Slf4j
