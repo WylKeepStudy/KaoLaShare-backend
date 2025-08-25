@@ -6,17 +6,23 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface FileMapper {
 
-    // 根据文件id查找文件全部信息
+    // 根据文件id查找文件全部信息（用于下载文件）
     @Select("SELECT id, user_id, department_id, file_name, file_url, file_type, download_count, create_time " +
             "FROM t_file WHERE id = #{id}")
     File findById(@Param("id") Long id);
 
-    // 根据文件id更新下载次数
+
+    /**
+     * 更新文件下载次数
+     * @param id 文件ID
+     * @return 影响行数
+     */
     @Update("UPDATE t_file SET download_count = download_count + 1 WHERE id = #{id}")
     int incrementDownloadCount(@Param("id") Long id);
 
+
     /**
-     * 插入新文件记录到t_file表
+     * 插入新文件记录到t_file表（上传文件）
      * @param file 文件实体
      * @return 影响行数
      */

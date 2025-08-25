@@ -6,6 +6,9 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.auth.CredentialsProviderFactory;
 import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
 import com.aliyun.oss.common.comm.SignVersion;
+import com.aliyun.oss.model.OSSObject;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +16,17 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.UUID;
 
+/**
+ * AliyunOSSOperator 工具类
+ * 管理 OSSClient 的生命周期，提供文件上传和下载功能。
+ */
 @Component
 public class AliyunOSSOperator {
 
     @Autowired
     private AliyunOSSProperties aliyunOSSProperties;
 
+    private OSS ossClient; // OSSClient 实例，作为单例
 
 
     /**
@@ -28,6 +36,52 @@ public class AliyunOSSOperator {
         IMAGE,
         FILE // 对应普通文件，如PDF, DOC等
     }
+
+
+
+    /**
+     * Spring 容器初始化后，执行此方法初始化 OSSClient
+     */
+    @PostConstruct
+    public void init() {
+        String endpoint = aliyunOSSProperties.getEndpoint();
+        String region = aliyunOSSProperties.getRegion();
+
+        // 从环境变量中获取访问凭证。
+        // 运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
+        EnvironmentVariableCredentialsProvider credentialsProvider = null;
+        try {
+            credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
+        } catch (Exception e) {
+            // 如果环境变量未设置，这里会抛异常，实际项目中需要更完善的凭证管理
+            System.err.println("OSS访问凭证环境变量未设置: " + e.getMessage());
+            // 可以选择抛出自定义异常或使用其他凭证方式
+        }
+
+
+        ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
+        clientBuilderConfiguration.setSignatureVersion(SignVersion.V4); // 推荐使用V4签名
+
+        this.ossClient = OSSClientBuilder.create()
+                .endpoint(endpoint)
+                .credentialsProvider(credentialsProvider) // 使用注入的凭证提供者
+                .clientConfiguration(clientBuilderConfiguration)
+                .region(region)
+                .build();
+    }
+
+    /**
+     * Spring 容器销毁前，执行此方法关闭 OSSClient
+     * 释放连接资源，防止内存泄露
+     */
+    @PreDestroy
+    public void destroy() {
+        if (this.ossClient != null) {
+            this.ossClient.shutdown();
+        }
+    }
+
+
 
     /**
      * 上传文件到阿里云OSS
@@ -39,73 +93,62 @@ public class AliyunOSSOperator {
      * @throws Exception 如果上传过程中发生错误
      */
     public String upload(byte[] content, String originalFilename, FileCategory category) throws Exception {
-
-        String endpoint = aliyunOSSProperties.getEndpoint();
         String bucketName = aliyunOSSProperties.getBucketName();
-        String region = aliyunOSSProperties.getRegion();
+        String endpoint = aliyunOSSProperties.getEndpoint();
 
-        // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
-        EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
-
-        // 根据文件类别确定存储目录
         String baseDir;
         switch (category) {
             case IMAGE:
-                baseDir = "images/"; // 图片存储在 images/ 目录下
+                baseDir = "images/";
                 break;
             case FILE:
-                baseDir = "files/";  // 普通文件存储在 files/ 目录下
+                baseDir = "files/";
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported file category: " + category);
         }
 
-        // 生成一个新的不重复的文件名，保留原始文件后缀
         String fileExtension = "";
         int lastDotIndex = originalFilename.lastIndexOf(".");
         if (lastDotIndex != -1 && lastDotIndex < originalFilename.length() - 1) {
-            fileExtension = originalFilename.substring(lastDotIndex); // 获取文件后缀，例如 ".png"
+            fileExtension = originalFilename.substring(lastDotIndex);
         }
-        String newFileName = UUID.randomUUID().toString() + fileExtension; // 生成UUID作为文件名，加上原始后缀
-
-        // 构造OSS上的完整对象路径，例如 "images/a1b2c3d4-e5f6-7890-1234-567890abcdef.png"
+        String newFileName = UUID.randomUUID().toString() + fileExtension;
         String objectName = baseDir + newFileName;
 
-        // 创建OSSClient实例。
-        ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
-        clientBuilderConfiguration.setSignatureVersion(SignVersion.V4); // 推荐使用V4签名
-        OSS ossClient = OSSClientBuilder.create()
-                .endpoint(endpoint)
-                .credentialsProvider(credentialsProvider)
-                .clientConfiguration(clientBuilderConfiguration)
-                .region(region)
-                .build();
-
-        try {
-            // 上传文件
-            ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(content));
-        } finally {
-            // 确保OSSClient在无论成功或失败后都被关闭，释放资源
-            ossClient.shutdown();
-        }
+        this.ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(content));
 
         // 构造并返回文件的访问URL
-        // URL格式通常是 https://bucketName.endpoint/objectName
-        // 注意：这里需要根据你的endpoint格式来精确构造，如果endpoint本身不带协议，可能需要手动添加
-        // 假设endpoint是 "https://oss-cn-beijing.aliyuncs.com"
         return endpoint.replace("https://", "https://" + bucketName + ".") + "/" + objectName;
-        // 如果endpoint是 "oss-cn-beijing.aliyuncs.com" (不带协议)，则应该是
-        // return "https://" + bucketName + "." + endpoint + "/" + objectName;
     }
 
 
-    public InputStream download(String fileUrl) {
 
-        return null;
 
+
+    /**
+     * 从阿里云OSS下载文件
+     *
+     * @param ossFileUrl 文件在OSS上的完整URL，例如 "https://bucketName.endpoint/files/some-uuid.pdf"
+     * @return OSSObject，包含文件的InputStream和元数据。调用方需负责关闭OSSObject。
+     * @throws Exception 如果下载过程中发生错误或文件不存在
+     */
+    public OSSObject download(String ossFileUrl) throws Exception {
+        String bucketName = aliyunOSSProperties.getBucketName();
+        String endpoint = aliyunOSSProperties.getEndpoint();
+
+        // 从完整的OSS URL中解析出Object Name
+        // 例如：https://java-wyl-ai.oss-cn-beijing.aliyuncs.com/files/some-uuid.pdf
+        // objectName 就是 files/some-uuid.pdf
+        String objectName = ossFileUrl.substring(ossFileUrl.indexOf(bucketName + ".") + bucketName.length() + 1 + endpoint.split("//")[1].length());
+
+        // 确保objectName不以斜杠开头，除非它就是根目录下的文件
+        if (objectName.startsWith("/")) {
+            objectName = objectName.substring(1);
+        }
+
+        return this.ossClient.getObject(bucketName, objectName);
     }
-
-
 
 
 }

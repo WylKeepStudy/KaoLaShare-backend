@@ -1,9 +1,11 @@
 package com.kaola.service.impl;
 
+import com.aliyun.oss.model.OSSObject;
 import com.kaola.exception.BusinessException;
 import com.kaola.exception.FileNotFoundException;
 import com.kaola.mapper.FileMapper;
 import com.kaola.pojo.File;
+import com.kaola.pojo.FileDownloadInfoDTO;
 import com.kaola.service.FileService;
 import com.kaola.utils.AliyunOSSOperator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,15 +33,17 @@ public class FileServiceImpl implements FileService {
     private AliyunOSSOperator aliyunOSSOperator;
 
 
-/**
- * 下载文件业务逻辑
- * @param fileId 文件ID
- * @return 包含文件信息和文件流的Map
- * @throws FileNotFoundException 如果文件不存在
- * @throws Exception 如果从OSS下载失败
- */
-    @Override
-    public Map<String, Object> downloadFile(Long fileId) {
+
+
+
+    /**
+     * 下载文件业务逻辑
+     * @param fileId 文件ID
+     * @return 包含文件信息和OSSObject的FileDownloadInfo对象
+     * @throws FileNotFoundException 如果文件不存在
+     * @throws BusinessException 如果从OSS下载失败
+     */
+    public FileDownloadInfoDTO downloadFile(Long fileId) {
         // 1. 查询文件元数据
         File file = fileMapper.findById(fileId);
         if (file == null) {
@@ -49,19 +53,32 @@ public class FileServiceImpl implements FileService {
         // 2. 更新下载次数
         fileMapper.incrementDownloadCount(fileId);
 
-        // 3. 从阿里云OSS获取文件输入流
-        // 需要在AliyunOSSOperator中添加一个download方法
-        InputStream fileStream = aliyunOSSOperator.download(file.getFileUrl());
-        if (fileStream == null) {
-            throw new RuntimeException("未能从OSS获取文件流");
+        OSSObject ossObject;
+        try {
+            // 3. 从阿里云OSS获取OSSObject
+            ossObject = aliyunOSSOperator.download(file.getFileUrl());
+            if (ossObject == null || ossObject.getObjectContent() == null) {
+                throw new BusinessException("未能从OSS获取文件流");
+            }
+        } catch (Exception e) {
+            throw new BusinessException("从OSS下载文件失败: " + e.getMessage(), e);
         }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("fileName", file.getFileName());
-        result.put("fileType", file.getFileType()); // 例如 "pdf", "docx"
-        result.put("fileStream", fileStream); // 将InputStream传递给Controller
-        return result;
+        // 4. 封装并返回FileDownloadInfo
+        String fileExtension = "";
+        int lastDotIndex = file.getFileName().lastIndexOf(".");
+        if (lastDotIndex != -1 && lastDotIndex < file.getFileName().length() - 1) {
+            fileExtension = file.getFileName().substring(lastDotIndex + 1).toLowerCase(); // 获取不带点的后缀
+        }
+
+        return new FileDownloadInfoDTO(
+                file.getFileName(),
+                fileExtension, // 传递文件后缀，用于Controller判断ContentType
+                ossObject.getObjectMetadata().getContentLength(), // 获取文件内容长度
+                ossObject // 将OSSObject传递给Controller
+        );
     }
+
 
 
     /**
@@ -95,7 +112,7 @@ public class FileServiceImpl implements FileService {
         File newFile = new File();
         newFile.setUserId(userId);
         newFile.setDepartmentId(departmentId);
-        newFile.setFileName(title);
+        newFile.setFileName(originalFilename);
         newFile.setFileUrl(fileUrl);
         newFile.setFileType(fileType);
         newFile.setDownloadCount(0); // 初始下载次数为0
