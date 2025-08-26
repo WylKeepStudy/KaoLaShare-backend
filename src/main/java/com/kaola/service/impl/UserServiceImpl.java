@@ -1,5 +1,6 @@
 package com.kaola.service.impl;
 
+import com.kaola.exception.BusinessException;
 import com.kaola.exception.UsernameAlreadyExistsException;
 import com.kaola.mapper.UserMapper;
 import com.kaola.pojo.*;
@@ -17,7 +18,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired // 自动注入Mapper
     private UserMapper userMapper;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @Autowired
     private JwtUtil jwtUtils;
 
@@ -68,6 +71,33 @@ public class UserServiceImpl implements UserService {
 
         // 4. 返回登录成功数据
         return new LoginResponse(token);
+    }
+
+
+
+
+    /**
+     * 获取用户详细信息业务逻辑
+     * @param userId 用户ID
+     * @return UserInfoDTO 对象，包含用户ID、用户名和头像URL
+     * @throws BusinessException 如果用户不存在
+     */
+    public UserInfoDTO getUserInfo(Long userId) {
+        // 1. 调用Mapper层根据用户ID查询用户
+        User user = userMapper.findById(userId);
+
+        // 2. 业务校验：如果用户不存在
+        if (user == null) {
+            throw new BusinessException("用户不存在或已失效");
+        }
+
+        // 3. 将 User 实体转换为 UserInfoDTO
+        UserInfoDTO userInfoDTO = new UserInfoDTO();
+        userInfoDTO.setUserId(user.getId());
+        userInfoDTO.setUsername(user.getUsername());
+        userInfoDTO.setAvatarUrl(user.getAvatarUrl());
+
+        return userInfoDTO;
     }
 
 }
