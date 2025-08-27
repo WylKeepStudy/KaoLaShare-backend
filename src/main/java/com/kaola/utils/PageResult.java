@@ -12,8 +12,8 @@ public class PageResult {
     // 当前页的数据列表（如当前页的10个文件）
     private List<?> records;
     // 页码（前端传入的pageNum）
-    private Integer pageNum;
-
-    private Integer pageSize;
+//    private Integer pageNum;
+//
+//    private Integer pageSize;
 
 }

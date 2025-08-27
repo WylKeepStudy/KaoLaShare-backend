@@ -43,13 +43,14 @@ public interface FileMapper {
      * @param keyword 搜索关键词（模糊匹配文件名，可为null）
      * @return 当前页的文件列表
      */
-    @Select("SELECT t_file.id,file_name,username,file_type FROM t_file,t_user " +
+    @Select("SELECT t_file.id,file_name,username AS contributorName,file_type FROM t_file,t_user " +
             "WHERE (t_user.id=t_file.user_id)AND(department_id = #{departmentId} OR #{departmentId} IS NULL) " +
             "AND (file_name LIKE CONCAT('%', #{keyword}, '%') OR #{keyword} IS NULL) " +
             "ORDER BY t_file.create_time DESC " +
             "LIMIT #{startIndex}, #{pageSize}")
     List<FileVO> selectFileList(Integer startIndex, Integer pageSize,
                                 Long departmentId, String keyword);
+
 
     /**
      * 查询符合条件的文件总条数（用于分页）

@@ -157,8 +157,8 @@ public class FileServiceImpl implements FileService {
         PageResult pageResult = new PageResult();
         pageResult.setTotal(total);
         pageResult.setRecords(fileList);
-        pageResult.setPageNum(pageNum);
-        pageResult.setPageSize(pageSize);
+//        pageResult.setPageNum(pageNum);
+//        pageResult.setPageSize(pageSize);
 
         return pageResult;
     }
