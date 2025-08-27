@@ -31,8 +31,7 @@ import java.util.Map;
 
 /**
  * @version 1.0
- * @Author wyl
- * @Date 2025/8/18 21:17
+ * 文件控制器
  */
 
 @Slf4j
@@ -255,12 +254,25 @@ public class FileController {
     }
 
 
+
+
+
+
+
+    /**
+     * 获取文件列表
+     * @param pageNum 页码
+     * @param pageSize 每页条数
+     * @param departmentId 部门ID
+     * @param keyword 关键词
+     * @return 文件列表
+     */
     @GetMapping("/list") // 接口路径：/file/list（与前端请求一致）
     public Result getFileList(
             // @RequestParam：接收URL中的Query参数（对应Apifox的Params）
             @RequestParam(required = true) Integer pageNum,
             @RequestParam(required = true) Integer pageSize,
-            @RequestParam(required = false) Long departmentId, // 可选参数
+            @RequestParam(required = true) Long departmentId,
             @RequestParam(required = false) String keyword) { // 可选参数
 
         // 1. 简单参数校验（避免页码/条数为负数）

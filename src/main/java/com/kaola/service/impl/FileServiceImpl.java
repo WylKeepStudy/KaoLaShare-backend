@@ -131,6 +131,17 @@ public class FileServiceImpl implements FileService {
         return newFile.getId(); // 返回新生成的文件ID
     }
 
+
+
+
+    /**
+     * 获取文件列表业务逻辑
+     * @param pageNum 页码
+     * @param pageSize 每页条数
+     * @param departmentId 文件所属系ID
+     * @param keyword 文件名称关键词
+     * @return 包含文件列表的分页结果
+     */
     @Override
     public PageResult getFileList(Integer pageNum, Integer pageSize, Long departmentId, String keyword) {
         // 1. 计算分页起始位置：(页码-1)*每页条数（MySQL LIMIT语法需要）
