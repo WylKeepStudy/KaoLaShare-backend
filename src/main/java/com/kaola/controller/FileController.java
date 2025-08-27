@@ -8,6 +8,7 @@ import com.kaola.pojo.FileDownloadInfoDTO;
 import com.kaola.pojo.Result;
 import com.kaola.service.FileService;
 import com.kaola.utils.AliyunOSSOperator;
+import com.kaola.utils.PageResult;
 import com.kaola.utils.UserContext;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -251,6 +252,28 @@ public class FileController {
             // 添加更多MIME类型...
             default: return MediaType.APPLICATION_OCTET_STREAM; // 默认
         }
+    }
+
+
+    @GetMapping("/list") // 接口路径：/file/list（与前端请求一致）
+    public Result getFileList(
+            // @RequestParam：接收URL中的Query参数（对应Apifox的Params）
+            @RequestParam(required = true) Integer pageNum,
+            @RequestParam(required = true) Integer pageSize,
+            @RequestParam(required = false) Long departmentId, // 可选参数
+            @RequestParam(required = false) String keyword) { // 可选参数
+
+        // 1. 简单参数校验（避免页码/条数为负数）
+        if (pageNum < 1 || pageSize < 1) {
+            return Result.error(400, "页码和每页条数必须大于0");
+        }
+
+        // 2. 调用Service获取分页结果
+        PageResult pageResult = fileService.getFileList(pageNum, pageSize,
+                departmentId, keyword);
+
+        // 3. 返回成功响应（符合项目统一格式）
+        return Result.success(pageResult);
     }
 
 

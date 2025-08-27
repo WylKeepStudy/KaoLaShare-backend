@@ -8,6 +8,7 @@ import com.kaola.pojo.File;
 import com.kaola.pojo.FileDownloadInfoDTO;
 import com.kaola.service.FileService;
 import com.kaola.utils.AliyunOSSOperator;
+import com.kaola.utils.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -127,6 +129,26 @@ public class FileServiceImpl implements FileService {
         }
 
         return newFile.getId(); // 返回新生成的文件ID
+    }
+
+    @Override
+    public PageResult getFileList(Integer pageNum, Integer pageSize, Long departmentId, String keyword) {
+        // 1. 计算分页起始位置：(页码-1)*每页条数（MySQL LIMIT语法需要）
+        Integer startIndex = (pageNum - 1) * pageSize;
+
+        // 2. 调用Mapper查询：当前页数据 + 总条数
+        List<File> fileList = fileMapper.selectFileList(startIndex, pageSize,
+                departmentId, keyword);
+        Long total = fileMapper.selectFileTotal(departmentId, keyword);
+
+        // 3. 封装分页结果
+        PageResult pageResult = new PageResult();
+        pageResult.setTotal(total);
+        pageResult.setRecords(fileList);
+        pageResult.setPageNum(pageNum);
+        pageResult.setPageSize(pageSize);
+
+        return pageResult;
     }
 
 }
