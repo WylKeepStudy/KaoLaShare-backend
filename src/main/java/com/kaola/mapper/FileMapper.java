@@ -3,6 +3,8 @@ package com.kaola.mapper;
 import com.kaola.pojo.File;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 @Mapper
 public interface FileMapper {
 
@@ -30,4 +32,29 @@ public interface FileMapper {
             "VALUES (#{userId}, #{departmentId}, #{fileName}, #{fileUrl}, #{fileType}, #{downloadCount}, #{createTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id") // 关键：获取自增ID并设置到File对象的id属性
     int insertFile(File file);
+
+
+    /**
+     * 分页查询文件列表
+     * @param startIndex 分页起始位置（pageNum-1)*pageSize
+     * @param pageSize 每页条数
+     * @param departmentId 系ID（筛选条件，可为null）
+     * @param keyword 搜索关键词（模糊匹配文件名，可为null）
+     * @return 当前页的文件列表
+     */
+    @Select("SELECT * FROM t_file " +
+            "WHERE (department_id = #{departmentId} OR #{departmentId} IS NULL) " +
+            "AND (file_name LIKE CONCAT('%', #{keyword}, '%') OR #{keyword} IS NULL) " +
+            "ORDER BY create_time DESC " +
+            "LIMIT #{startIndex}, #{pageSize}")
+    List<File> selectFileList(Integer startIndex, Integer pageSize,
+                              Long departmentId, String keyword);
+
+    /**
+     * 查询符合条件的文件总条数（用于分页）
+     */
+    @Select("SELECT COUNT(*) FROM t_file " +
+            "WHERE (department_id = #{departmentId} OR #{departmentId} IS NULL) " +
+            "AND (file_name LIKE CONCAT('%', #{keyword}, '%') OR #{keyword} IS NULL)")
+    Long selectFileTotal(Long departmentId, String keyword);
 }

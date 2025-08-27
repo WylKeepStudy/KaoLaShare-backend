@@ -2,6 +2,7 @@ package com.kaola.service;
 
 import com.kaola.pojo.File;
 import com.kaola.pojo.FileDownloadInfoDTO;
+import com.kaola.utils.PageResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
@@ -16,4 +17,6 @@ public interface FileService {
     public FileDownloadInfoDTO downloadFile(Long fileId) throws Exception;
 
     Long uploadMaterial(MultipartFile file, String title, Long departmentId, Long currentUserId);
+
+    PageResult getFileList(Integer pageNum, Integer pageSize, Long departmentId, String keyword);
 }
