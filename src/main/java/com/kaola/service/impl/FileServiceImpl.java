@@ -6,6 +6,7 @@ import com.kaola.exception.FileNotFoundException;
 import com.kaola.mapper.FileMapper;
 import com.kaola.pojo.File;
 import com.kaola.pojo.FileDownloadInfoDTO;
+import com.kaola.pojo.FileVO;
 import com.kaola.service.FileService;
 import com.kaola.utils.AliyunOSSOperator;
 import com.kaola.utils.PageResult;
@@ -148,7 +149,7 @@ public class FileServiceImpl implements FileService {
         Integer startIndex = (pageNum - 1) * pageSize;
 
         // 2. 调用Mapper查询：当前页数据 + 总条数
-        List<File> fileList = fileMapper.selectFileList(startIndex, pageSize,
+        List<FileVO> fileList = fileMapper.selectFileList(startIndex, pageSize,
                 departmentId, keyword);
         Long total = fileMapper.selectFileTotal(departmentId, keyword);
 
